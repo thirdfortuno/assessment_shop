@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "810688683170",
+    "firebase_url": "https://assessment-shop.firebaseio.com",
+    "project_id": "assessment-shop",
+    "storage_bucket": "assessment-shop.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810688683170:android:9e5754c467bc55466e8bfb",
+        "android_client_info": {
+          "package_name": "com.example.assessment_shop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "810688683170-8mor8rdafjls337g1h907h1mq0aq03bd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT5ffWMZ8yBIoEjytC1TGIYJIzPYLuIp4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "810688683170-8mor8rdafjls337g1h907h1mq0aq03bd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
