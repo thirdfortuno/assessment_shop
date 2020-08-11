@@ -1,3 +1,4 @@
+import 'package:assessment_shop/ownerStorePage.dart';
 import 'package:assessment_shop/widgets/ownerScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -51,94 +52,111 @@ class _StoreCardState extends State<StoreCard>{
   @override
   Widget build(BuildContext context){
     return Card(
-        child: InkWell(
-          child: Column(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
             children: <Widget>[
-              Text(widget.store['name']),
-              Text(widget.store['desc']),
-              Text(widget.store['photo']),
-              Text(widget.store['hours'])
+              Container(
+                width: 160,
+                child: Text(widget.store['name'])
+              ),
+              Spacer(),
+              RaisedButton(
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OwnerStorePage(store: widget.store)
+                    )
+                  );
+                },
+                child: Text("View"),
+              ),
+              SizedBox(width: 8),
+              RaisedButton(
+                onPressed: () async {
+                  String origName = widget.store['name'];
+                  storeNameController.text = widget.store['name'];
+                  storeDescController.text = widget.store['desc'];
+                  storePhotoController.text = widget.store['photo'];
+                  storeHoursController.text = widget.store['hours'];
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context){
+                      return AlertDialog(
+                        title: Text("Editing $origName"),
+                        content: Container(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                          child: ListView(
+                            children: <Widget>[
+                              Text("Edit Store Name"),
+                              TextField(
+                                controller: storeNameController,
+                              ),
+                              SizedBox(height: 16),
+                              Text("Edit Store Description"),
+                              TextField(
+                                controller: storeDescController,
+                              ),
+                              SizedBox(height: 16),
+                              Text("Edit Store Photo"),
+                              TextField(
+                                controller: storePhotoController,
+                              ),
+                              SizedBox(height: 16),
+                              Text("Edit Store Hours"),
+                              TextField(
+                                controller: storeHoursController,
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text("Update"),
+                            onPressed: () async {
+                              String name = storeNameController.text;
+                              String desc = storeDescController.text;
+                              String photo = storePhotoController.text;
+                              String hours = storeHoursController.text;
+                              await Firestore.instance.collection('stores').document(widget.store.documentID)
+                              .updateData({
+                                'name': name,
+                                'desc': desc,
+                                'photo': photo,
+                                'hours': hours,
+                              });
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          FlatButton(
+                            child: Text("Cancel"),
+                            onPressed: (){
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                          FlatButton(
+                            child: Text(
+                              "Delete",
+                              style: TextStyle(
+                                color: Colors.red
+                              ),
+                            ),
+                            onPressed: () async {
+                              await Firestore.instance.collection('stores').document(widget.store.documentID).delete();
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    }
+                  );
+                },
+                child: Text("Edit/Delete"),
+              )
             ],
-          ),
-          onTap:() async {
-            String origName = widget.store['name'];
-            storeNameController.text = widget.store['name'];
-            storeDescController.text = widget.store['desc'];
-            storePhotoController.text = widget.store['photo'];
-            storeHoursController.text = widget.store['hours'];
-            showDialog(
-              context: context,
-              builder: (BuildContext context){
-                return AlertDialog(
-                  title: Text("Editing $origName"),
-                  content: Container(
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    child: ListView(
-                      children: <Widget>[
-                        Text("Edit Store Name"),
-                        TextField(
-                          controller: storeNameController,
-                        ),
-                        SizedBox(height: 16),
-                        Text("Edit Store Desc"),
-                        TextField(
-                          controller: storeDescController,
-                        ),
-                        SizedBox(height: 16),
-                        Text("Edit Store Photo"),
-                        TextField(
-                          controller: storePhotoController,
-                        ),
-                        SizedBox(height: 16),
-                        Text("Edit Store Hours"),
-                        TextField(
-                          controller: storeHoursController,
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: <Widget>[
-                    FlatButton(
-                      child: Text("Update"),
-                      onPressed: () async {
-                        String name = storeNameController.text;
-                        String desc = storeDescController.text;
-                        String photo = storePhotoController.text;
-                        String hours = storeHoursController.text;
-                        await Firestore.instance.collection('stores').document(widget.store.documentID)
-                        .updateData({
-                          'name': name,
-                          'desc': desc,
-                          'photo': photo,
-                          'hours': hours,
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text("Cancel"),
-                      onPressed: (){
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    FlatButton(
-                      child: Text(
-                        "Delete",
-                        style: TextStyle(
-                          color: Colors.red
-                        ),
-                      ),
-                      onPressed: () async {
-                        await Firestore.instance.collection('stores').document(widget.store.documentID).delete();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              }
-            );
-          }
+          )
         ),
       );
   }
