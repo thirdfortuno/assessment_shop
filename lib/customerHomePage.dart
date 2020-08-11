@@ -1,22 +1,23 @@
+import 'package:assessment_shop/customerCartPage.dart';
 import 'package:assessment_shop/widgets/customerScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class CartObject{
-  String storeID;
-  String productID;
+  String name;
+  double price;
   int quantity;
 
-  CartObject(storeID, productID, quantity){
-    this.storeID = storeID;
-    this.productID = productID;
+  CartObject(name, price, quantity){
+    this.name = name;
+    this.price = price;
     this.quantity = quantity;
   }
 
   Map<String, dynamic> toJson() =>
   {
-    'storeID': storeID,
-    'productID': productID,
+    'name': name,
+    'price': price,
     'quantity': quantity
   };
 }
@@ -25,11 +26,11 @@ class CustomerProductCard extends StatefulWidget{
   const CustomerProductCard({
     Key key,
     this.product,
-    this.storeID
+    this.store
   });
 
   final DocumentSnapshot product;
-  final String storeID;
+  final DocumentSnapshot store;
 
   @override
   _CustomerProductCardState createState() => _CustomerProductCardState();
@@ -89,20 +90,27 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                             child: Text("Add to Cart"),
                             onPressed: () async {
                               int quantity = int.parse(purchaseController.text);
-                              DocumentSnapshot cartSnap = await Firestore.instance.collection('cart').document(widget.storeID + widget.product.documentID).get();
-                              await Firestore.instance.collection('stores').document(widget.storeID).collection('products').document(widget.product.documentID)
+                              DocumentSnapshot storeSnap = await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID).get();
+                              DocumentSnapshot cartSnap = await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID)
+                              .collection('products').document(widget.product.documentID).get();
+                              await Firestore.instance.collection('stores').document(widget.store.documentID).collection('products').document(widget.product.documentID)
                               .updateData({
                                 'quantity': FieldValue.increment(-quantity)
                               });
+                              if (!storeSnap.exists){
+                                await Firestore.instance.collection('cart').document(widget.store.documentID).setData({
+                                  'name': widget.store['name']
+                                });
+                              }
                               if (cartSnap.exists){
-                                await Firestore.instance.collection('cart').document(widget.storeID+widget.product.documentID)
+                                await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID)
                               .updateData({
                                 'quantity': FieldValue.increment(quantity)
                               });
                               } else {
-                                CartObject cart = new CartObject(widget.storeID, widget.product.documentID, quantity);
+                                CartObject cart = new CartObject(widget.product['name'], widget.product['price'], quantity);
                                 Map<String, dynamic> cartData = cart.toJson();
-                                await Firestore.instance.collection('cart').document(widget.storeID + widget.product.documentID).setData(cartData);
+                                await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID).setData(cartData);
                               }
                               Navigator.of(context).pop();
                             },
@@ -134,11 +142,10 @@ class CustomerHomePage extends StatefulWidget{
 
 class _CustomerHomePageState extends State<CustomerHomePage>{
 
-  Widget _productInventory(context, snapshot, storeID){
+  Widget _productInventory(context, snapshot, store){
     List<Widget> list = [];
     for(var i = 0;i < snapshot.data.documents.length;i++){
-      //list.add(Text(snapshot.data.documents[i].documentID));
-      list.add(CustomerProductCard(product: snapshot.data.documents[i], storeID: storeID));
+      list.add(CustomerProductCard(product: snapshot.data.documents[i], store: store));
     }
     return Column(
       children: list.length > 0 ? list : [Text("No Products Available")],
@@ -157,7 +164,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
           stream: Firestore.instance.collection('stores').document(document.documentID).collection('products').snapshots(),
           builder: (context, snapshot){
             if (!snapshot.hasData) return Text("Loading . . .");
-            return _productInventory(context, snapshot, document.documentID);
+            return _productInventory(context, snapshot, document);
           }
         ),
         Divider()
@@ -177,7 +184,12 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
               child: Column(
                 children: <Widget>[
                   RaisedButton(
-                    onPressed: null,
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CustomerCartPage())
+                      );
+                    },
                     child: Text("View Cart"),
                   )
                 ],
