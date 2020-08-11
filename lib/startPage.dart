@@ -1,3 +1,4 @@
+import 'package:assessment_shop/customerHomePage.dart';
 import 'package:assessment_shop/ownerHomePage.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,12 @@ class StartPage extends StatelessWidget{
                   child: Text(
                     "Customer"
                   ),
-                  onPressed: null
+                  onPressed: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CustomerHomePage()),
+                    );
+                  }
                 ),
               ],
             )

@@ -174,8 +174,6 @@ class _OwnerHomePageState extends State<OwnerHomePage>{
   final storePhotoController = new TextEditingController();
   final storeHoursController = new TextEditingController();
 
-  List<Store> stores = [];
-
   void initState(){
     super.initState();
   }
