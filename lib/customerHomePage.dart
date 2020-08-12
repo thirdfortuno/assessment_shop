@@ -52,7 +52,11 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                 children: <Widget>[
                   Text(widget.product['name']),
                   Text(widget.product['desc']),
-                  Text(widget.product['photo']),
+                  FadeInImage.assetNetwork(
+                    height: 100,
+                    placeholder: 'assets/no_img.png',
+                    image: widget.product['photo']
+                  ),
                   Text(widget.product['price'].toString()),
                   Text(widget.product['quantity'].toString()),
                 ],
@@ -73,7 +77,11 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                         child: ListView(
                           children: <Widget>[
                             Text(widget.product['desc']),
-                            Text(widget.product['photo']),
+                            FadeInImage.assetNetwork(
+                              height: 100,
+                              placeholder: 'assets/no_img.png',
+                              image: widget.product['photo']
+                            ),
                             Text(widget.product['price'].toString()),
                             Text(widget.product['quantity'].toString()),
                             SizedBox(height: 16),
@@ -112,6 +120,11 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                                 Map<String, dynamic> cartData = cart.toJson();
                                 await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID).setData(cartData);
                               }
+                              await Firestore.instance.collection('total').document('total')
+                              .updateData({
+                                'price': FieldValue.increment(quantity * widget.product['price']),
+                                'quantity': FieldValue.increment(quantity)
+                              });
                               Navigator.of(context).pop();
                             },
                           ),
@@ -142,6 +155,8 @@ class CustomerHomePage extends StatefulWidget{
 
 class _CustomerHomePageState extends State<CustomerHomePage>{
 
+  
+
   Widget _productInventory(context, snapshot, store){
     List<Widget> list = [];
     for(var i = 0;i < snapshot.data.documents.length;i++){
@@ -157,7 +172,11 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
       children: <Widget>[
         Text(document['name']),
         Text(document['desc']),
-        Text(document['photo']),
+        FadeInImage.assetNetwork(
+          height: 100,
+          placeholder: 'assets/no_img.png',
+          image: document['photo']
+        ),
         Text(document['hours']),
         Text("Products"),
         StreamBuilder(
@@ -183,6 +202,18 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
               height: 200,
               child: Column(
                 children: <Widget>[
+                  FutureBuilder(
+                    future: Firestore.instance.collection('total').document('total').get(),
+                    builder: (context, document){
+                      if (!document.hasData) return Text("Loading . . .");
+                      return Column(
+                        children: <Widget>[
+                          Text(document.data['price'].toString()),
+                          Text(document.data['quantity'].toString())
+                        ]
+                      );
+                    }
+                  ),
                   RaisedButton(
                     onPressed: (){
                       Navigator.push(

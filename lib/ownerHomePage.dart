@@ -100,7 +100,7 @@ class _StoreCardState extends State<StoreCard>{
                                 controller: storeDescController,
                               ),
                               SizedBox(height: 16),
-                              Text("Edit Store Photo"),
+                              Text("Edit Store Photo URL"),
                               TextField(
                                 controller: storePhotoController,
                               ),
@@ -203,7 +203,7 @@ class _OwnerHomePageState extends State<OwnerHomePage>{
                   controller: storeDescController,
                 ),
                 SizedBox(height: 16),
-                Text("Enter Store Photo"),
+                Text("Enter Store Photo URL"),
                 TextField(
                   controller: storePhotoController,
                 ),

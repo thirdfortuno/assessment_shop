@@ -20,7 +20,7 @@ class _ProductCardState extends State<ProductCard>{
 
   final productQuantController = new TextEditingController();
 
-
+  var price;
 
   @override
   Widget build(BuildContext context){
@@ -29,10 +29,21 @@ class _ProductCardState extends State<ProductCard>{
         padding: EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           children: <Widget>[
-            Text(widget.product['name']),
-            Text(widget.product['price'].toString()),
-            Text(widget.product['quantity'].toString()),
-            Text((widget.product['quantity']*widget.product['price']).toString()),
+            FutureBuilder(
+              future: Firestore.instance.collection('stores').document(widget.storeID).collection('products').document(widget.product.documentID).get(),
+              builder: (context, document){
+                if (!document.hasData) return Text("Loading . . .");
+                price ??= document.data['price'];
+                return Column(
+                  children: <Widget>[
+                    Text(document.data['name'].toString()),
+                    Text(document.data['price'].toString()),
+                    Text(widget.product['quantity'].toString()),
+                    Text((widget.product['quantity']*document.data['price']).toString()),
+                  ]
+                );
+              }
+            ),
             RaisedButton(
               child: Text("Edit/Delete"),
               onPressed: () async {
@@ -68,6 +79,11 @@ class _ProductCardState extends State<ProductCard>{
                               .updateData({
                                 'quantity': int.parse(productQuantController.text)
                               });
+                              await Firestore.instance.collection('total').document('total')
+                              .updateData({
+                                'price': FieldValue.increment(difference * price),
+                                'quantity': FieldValue.increment(difference)
+                              });
                               Navigator.of(context).pop();
                             },
                           ),
@@ -88,6 +104,11 @@ class _ProductCardState extends State<ProductCard>{
                               await Firestore.instance.collection('stores').document(widget.storeID).collection('products').document(widget.product.documentID)
                               .updateData({
                                 'quantity': FieldValue.increment(widget.product['quantity'])
+                              });
+                              await Firestore.instance.collection('total').document('total')
+                              .updateData({
+                                'price': FieldValue.increment(-widget.product['quantity'] * widget.product['price']),
+                                'quantity': FieldValue.increment(-widget.product['quantity'])
                               });
                               await Firestore.instance.collection('cart').document(widget.storeID).collection('products').document(widget.product.documentID).delete();
                               Navigator.of(context).pop();
@@ -114,8 +135,16 @@ class CustomerCartPage extends StatefulWidget{
 
 class _CustomerCartPageState extends State<CustomerCartPage>{
 
-  Widget _buildProductList(context, snapshot, storeID, storeName){
-    List<Widget> list = [Text(storeName)];
+  Widget _buildProductList(context, snapshot, storeID){
+    List<Widget> list = [
+      FutureBuilder(
+        future: Firestore.instance.collection('stores').document(storeID).get(),
+        builder: (context, document){
+          if (!document.hasData) return Text("Loading . . .");
+          return Text(document.data['name']);
+        }
+      )
+    ];
     for(var i = 0;i < snapshot.data.documents.length;i++){
       list.add(ProductCard(product: snapshot.data.documents[i], storeID: storeID));
     }
@@ -131,7 +160,7 @@ class _CustomerCartPageState extends State<CustomerCartPage>{
           stream: Firestore.instance.collection('cart').document(document.documentID).collection('products').snapshots(),
           builder: (context, snapshot){
             if (!snapshot.hasData) return Text("Loading . . .");
-            return _buildProductList(context, snapshot, document.documentID, document['name']);
+            return _buildProductList(context, snapshot, document.documentID);
           }
         )
       ],
@@ -147,6 +176,35 @@ class _CustomerCartPageState extends State<CustomerCartPage>{
           children: <Widget>[
             Container(
               height: 200,
+              child: FutureBuilder(
+                future: Firestore.instance.collection('total').document('total').get(),
+                builder: (context, document){
+                  if (!document.hasData) return Text("Loading . . .");
+                  return Column(
+                    children: <Widget>[
+                      Text(document.data['price'].toString()),
+                      Text(document.data['quantity'].toString()),
+                      RaisedButton(
+                        child: Text("Checkout"),
+                        onPressed: () async {
+                          await Firestore.instance.collection('cart').getDocuments().then((snapshot){
+                            for (DocumentSnapshot doc in snapshot.documents){
+                              doc.reference.delete();
+                            }
+                          });
+                          await Firestore.instance.collection('total').document('total').updateData({
+                            'price': 0.0,
+                            'quantity': 0
+                          });
+                          setState(() {
+                            
+                          });
+                        }
+                      )
+                    ],
+                  );
+                }
+              ),
             ),
             Expanded(
               child: StreamBuilder(

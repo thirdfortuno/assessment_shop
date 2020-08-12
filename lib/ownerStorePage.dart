@@ -61,7 +61,11 @@ class _ProductCardState extends State<ProductCard>{
           children: <Widget>[
             Text(widget.product['name']),
             Text(widget.product['desc']),
-            Text(widget.product['photo']),
+            FadeInImage.assetNetwork(
+              height: 100,
+              placeholder: 'assets/no_img.png',
+              image: widget.product['photo']
+            ),
             Text(widget.product['price'].toString()),
             Text(widget.product['quantity'].toString()),
             RaisedButton(
@@ -92,7 +96,7 @@ class _ProductCardState extends State<ProductCard>{
                               controller: productDescController,
                             ),
                             SizedBox(height: 16),
-                            Text("Edit Product Photo"),
+                            Text("Edit Product Photo URL"),
                             TextField(
                               controller: productPhotoController,
                             ),
@@ -208,7 +212,7 @@ class _OwnerStorePageState extends State<OwnerStorePage>{
                   controller: productDescController,
                 ),
                 SizedBox(height: 16),
-                Text("Enter Product Photo"),
+                Text("Enter Product Photo URL"),
                 TextField(
                   controller: productPhotoController,
                 ),
@@ -268,12 +272,16 @@ class _OwnerStorePageState extends State<OwnerStorePage>{
         child: Column(
           children: <Widget>[
             Container(
-              height: 150,
+              height: 250,
               child: Column(
                 children: <Widget>[
                   SizedBox(height: 28),
                   Text(widget.store['desc']),
-                  Text(widget.store['photo']),
+                  FadeInImage.assetNetwork(
+                    height: 100,
+                    placeholder: 'assets/no_img.png',
+                    image: widget.store['photo']
+                  ),
                   Text(widget.store['hours']),
                   RaisedButton(
                     onPressed: (){
