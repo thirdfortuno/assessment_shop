@@ -1,5 +1,5 @@
 import 'package:assessment_shop/customerCartPage.dart';
-import 'package:assessment_shop/widgets/customerScaffold.dart';
+import 'package:assessment_shop/widgets/assessmentScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -249,7 +249,7 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
 
   @override
   Widget build(BuildContext context){
-    return CustomerScaffold(
+    return AssessmentScaffold(
       title: "Customer Home Page",
       body: Container(
         child: Column(

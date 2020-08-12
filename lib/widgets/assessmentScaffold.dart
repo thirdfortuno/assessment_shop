@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class OwnerScaffold extends StatelessWidget{
-  OwnerScaffold({Key key, this.title, this.body}) : super(key: key);
+class AssessmentScaffold extends StatelessWidget{
+  AssessmentScaffold({Key key, this.title, this.body}) : super(key: key);
 
   final String title;
   final Widget body;
@@ -9,15 +9,12 @@ class OwnerScaffold extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(30.0),
-        child: AppBar(
+      appBar: AppBar(
           title: Text(
             title,
           ),
           primary: false,
         ),
-      ),
       body: body,
     );
   }

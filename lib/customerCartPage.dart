@@ -1,4 +1,4 @@
-import 'package:assessment_shop/widgets/customerScaffold.dart';
+import 'package:assessment_shop/widgets/assessmentScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -250,7 +250,7 @@ class _CustomerCartPageState extends State<CustomerCartPage>{
 
   @override
   Widget build(BuildContext context){
-    return CustomerScaffold(
+    return AssessmentScaffold(
       title: "Customer Cart",
       body: Container(
         child: Column(

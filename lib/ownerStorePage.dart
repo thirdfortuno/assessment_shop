@@ -1,4 +1,4 @@
-import 'package:assessment_shop/widgets/ownerScaffold.dart';
+import 'package:assessment_shop/widgets/assessmentScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -278,7 +278,7 @@ class _OwnerStorePageState extends State<OwnerStorePage>{
 
   @override
   Widget build(BuildContext context){
-    return OwnerScaffold(
+    return AssessmentScaffold(
       title: widget.store['name'],
       body: Container(
         child: Column(

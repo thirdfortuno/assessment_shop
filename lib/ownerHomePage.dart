@@ -1,5 +1,5 @@
 import 'package:assessment_shop/ownerStorePage.dart';
-import 'package:assessment_shop/widgets/ownerScaffold.dart';
+import 'package:assessment_shop/widgets/assessmentScaffold.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -252,7 +252,7 @@ class _OwnerHomePageState extends State<OwnerHomePage>{
 
   @override
   Widget build(BuildContext context){
-    return OwnerScaffold(
+    return AssessmentScaffold(
       title: "Owner Home Page",
       body: Container(
         child: Column(
