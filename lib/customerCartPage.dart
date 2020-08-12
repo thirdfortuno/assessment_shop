@@ -36,10 +36,28 @@ class _ProductCardState extends State<ProductCard>{
                 price ??= document.data['price'];
                 return Column(
                   children: <Widget>[
-                    Text(document.data['name'].toString()),
-                    Text(document.data['price'].toString()),
-                    Text(widget.product['quantity'].toString()),
-                    Text((widget.product['quantity']*document.data['price']).toString()),
+                    Text(document.data['name'].toString(), style: TextStyle(fontWeight: FontWeight.bold)),
+                    Row( //This should be a RichText, but I'm having some issues on my phone with this
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("Cost per unit: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(document.data['price'].toString()),
+                      ]
+                    ),
+                    Row( //This should be a RichText, but I'm having some issues on my phone with this
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("Units in cart: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(widget.product['quantity'].toString()),
+                      ]
+                    ),
+                    Row( //This should be a RichText, but I'm having some issues on my phone with this
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("Total Cost: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text((widget.product['quantity']*document.data['price']).toString()),
+                      ]
+                    ),
                   ]
                 );
               }
@@ -135,32 +153,95 @@ class CustomerCartPage extends StatefulWidget{
 
 class _CustomerCartPageState extends State<CustomerCartPage>{
 
-  Widget _buildProductList(context, snapshot, storeID){
+  FutureBuilder cartInfo;
+
+  void initState(){
+    super.initState();
+    cartInfo = _cartInfo();
+  }
+
+  FutureBuilder _cartInfo(){
+    return FutureBuilder(
+      future: Firestore.instance.collection('total').document('total').get(),
+      builder: (context, document){
+        if (!document.hasData) return Text("Loading . . .");
+        return Column(
+          children: <Widget>[
+            SizedBox(height: 20),
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Total Cost: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(document.data['price'].toString()),
+              ]
+            ),
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Total Item Count: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(document.data['quantity'].toString()),
+              ]
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                RaisedButton(
+                  onPressed: (){
+                    setState(() {
+                      cartInfo = _cartInfo();
+                    });
+                  },
+                  child: Text("Refresh Cart"),
+                ),
+                SizedBox(width: 8),
+                RaisedButton(
+                  child: Text("Checkout"),
+                  onPressed: () async {
+                    await Firestore.instance.collection('cart').getDocuments().then((snapshot){
+                      for (DocumentSnapshot doc in snapshot.documents){
+                        doc.reference.delete();
+                      }
+                    });
+                    await Firestore.instance.collection('total').document('total').updateData({
+                      'price': 0.0,
+                      'quantity': 0
+                    });
+                    setState(() {
+                      cartInfo = _cartInfo();
+                    });
+                  }
+                )
+              ],
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildProductList(context, snapshot, storeID, storeName){
+    print(storeName);
     List<Widget> list = [
-      FutureBuilder(
-        future: Firestore.instance.collection('stores').document(storeID).get(),
-        builder: (context, document){
-          if (!document.hasData) return Text("Loading . . .");
-          return Text(document.data['name']);
-        }
-      )
+      Divider(),
+      Text(storeName,style: TextStyle(fontSize: 20)),
     ];
     for(var i = 0;i < snapshot.data.documents.length;i++){
       list.add(ProductCard(product: snapshot.data.documents[i], storeID: storeID));
     }
     return Column(
-      children: list.length > 1 ? list : [],
+      children: list.length > 2 ? list : [],
     );
   }
 
-  Widget _buildStoreList(context, document){
+  Widget _buildStoreList(context, document, storeName){
     return Column(
       children: <Widget>[
         StreamBuilder(
           stream: Firestore.instance.collection('cart').document(document.documentID).collection('products').snapshots(),
           builder: (context, snapshot){
             if (!snapshot.hasData) return Text("Loading . . .");
-            return _buildProductList(context, snapshot, document.documentID);
+            print(storeName);
+            return _buildProductList(context, snapshot, document.documentID, storeName);
           }
         )
       ],
@@ -175,36 +256,8 @@ class _CustomerCartPageState extends State<CustomerCartPage>{
         child: Column(
           children: <Widget>[
             Container(
-              height: 200,
-              child: FutureBuilder(
-                future: Firestore.instance.collection('total').document('total').get(),
-                builder: (context, document){
-                  if (!document.hasData) return Text("Loading . . .");
-                  return Column(
-                    children: <Widget>[
-                      Text(document.data['price'].toString()),
-                      Text(document.data['quantity'].toString()),
-                      RaisedButton(
-                        child: Text("Checkout"),
-                        onPressed: () async {
-                          await Firestore.instance.collection('cart').getDocuments().then((snapshot){
-                            for (DocumentSnapshot doc in snapshot.documents){
-                              doc.reference.delete();
-                            }
-                          });
-                          await Firestore.instance.collection('total').document('total').updateData({
-                            'price': 0.0,
-                            'quantity': 0
-                          });
-                          setState(() {
-                            
-                          });
-                        }
-                      )
-                    ],
-                  );
-                }
-              ),
+              height: 110,
+              child: cartInfo
             ),
             Expanded(
               child: StreamBuilder(
@@ -213,7 +266,7 @@ class _CustomerCartPageState extends State<CustomerCartPage>{
                   if (!snapshot.hasData) return Text("Loading . . .");
                   return ListView.builder(
                     itemCount: snapshot.data.documents.length,
-                    itemBuilder: (context, index) => _buildStoreList(context, snapshot.data.documents[index])
+                    itemBuilder: (context, index) => _buildStoreList(context, snapshot.data.documents[index],snapshot.data.documents[index]['name'])
                   );
                 }
               ),

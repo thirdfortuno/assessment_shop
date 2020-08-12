@@ -50,15 +50,27 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
             Expanded(
               child: Column(
                 children: <Widget>[
-                  Text(widget.product['name']),
+                  Text(widget.product['name'],style: TextStyle(fontWeight: FontWeight.bold)),
                   Text(widget.product['desc']),
                   FadeInImage.assetNetwork(
                     height: 100,
                     placeholder: 'assets/no_img.png',
                     image: widget.product['photo']
                   ),
-                  Text(widget.product['price'].toString()),
-                  Text(widget.product['quantity'].toString()),
+                  Row( //This should be a RichText, but I'm having some issues on my phone with this
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Price: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(widget.product['price'].toString()),
+                    ]
+                  ),
+                  Row( //This should be a RichText, but I'm having some issues on my phone with this
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Stock: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(widget.product['quantity'].toString()),
+                    ]
+                  ),
                 ],
               ),
             ),
@@ -82,8 +94,18 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                               placeholder: 'assets/no_img.png',
                               image: widget.product['photo']
                             ),
-                            Text(widget.product['price'].toString()),
-                            Text(widget.product['quantity'].toString()),
+                            Row( //This should be a RichText, but I'm having some issues on my phone with this
+                              children: <Widget>[
+                                Text("Cost: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(widget.product['price'].toString()),
+                              ]
+                            ),
+                            Row( //This should be a RichText, but I'm having some issues on my phone with this
+                              children: <Widget>[
+                                Text("Stock: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(widget.product['quantity'].toString()),
+                              ]
+                            ),
                             SizedBox(height: 16),
                             Text("How many to buy?"),
                             TextField(
@@ -98,23 +120,20 @@ class _CustomerProductCardState extends State<CustomerProductCard>{
                             child: Text("Add to Cart"),
                             onPressed: () async {
                               int quantity = int.parse(purchaseController.text);
-                              DocumentSnapshot storeSnap = await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID).get();
-                              DocumentSnapshot cartSnap = await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID)
-                              .collection('products').document(widget.product.documentID).get();
+                              DocumentSnapshot cartSnap = await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products')
+                              .document(widget.product.documentID).get();
                               await Firestore.instance.collection('stores').document(widget.store.documentID).collection('products').document(widget.product.documentID)
                               .updateData({
                                 'quantity': FieldValue.increment(-quantity)
                               });
-                              if (!storeSnap.exists){
-                                await Firestore.instance.collection('cart').document(widget.store.documentID).setData({
-                                  'name': widget.store['name']
-                                });
-                              }
+                              await Firestore.instance.collection('cart').document(widget.store.documentID).setData({
+                                'name': widget.store['name']
+                              });
                               if (cartSnap.exists){
                                 await Firestore.instance.collection('cart').document(widget.store.documentID).collection('products').document(widget.product.documentID)
-                              .updateData({
-                                'quantity': FieldValue.increment(quantity)
-                              });
+                                .updateData({
+                                  'quantity': FieldValue.increment(quantity)
+                                });
                               } else {
                                 CartObject cart = new CartObject(widget.product['name'], widget.product['price'], quantity);
                                 Map<String, dynamic> cartData = cart.toJson();
@@ -155,7 +174,39 @@ class CustomerHomePage extends StatefulWidget{
 
 class _CustomerHomePageState extends State<CustomerHomePage>{
 
-  
+  FutureBuilder cartInfo;
+
+  void initState(){
+    super.initState();
+    cartInfo = _cartInfo();
+  }
+
+  FutureBuilder _cartInfo(){
+    return FutureBuilder(
+      future: Firestore.instance.collection('total').document('total').get(),
+      builder: (context, document){
+        if (!document.hasData) return Text("Loading . . .");
+        return Column(
+          children: <Widget>[
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Total Cost: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(document.data['price'].toString()),
+              ]
+            ),
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Total Item Count: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(document.data['quantity'].toString()),
+              ]
+            ),
+          ]
+        );
+      }
+    );
+  }
 
   Widget _productInventory(context, snapshot, store){
     List<Widget> list = [];
@@ -170,15 +221,20 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
   Widget _buildStore(context, document){
     return Column(
       children: <Widget>[
-        Text(document['name']),
+        Text(document['name'],style: TextStyle(fontWeight: FontWeight.bold)),
         Text(document['desc']),
         FadeInImage.assetNetwork(
           height: 100,
           placeholder: 'assets/no_img.png',
           image: document['photo']
         ),
-        Text(document['hours']),
-        Text("Products"),
+        Row( //This should be a RichText, but I'm having some issues on my phone with this
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Open Hours: ", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(document['hours']),
+          ]
+        ),
         StreamBuilder(
           stream: Firestore.instance.collection('stores').document(document.documentID).collection('products').snapshots(),
           builder: (context, snapshot){
@@ -198,34 +254,39 @@ class _CustomerHomePageState extends State<CustomerHomePage>{
       body: Container(
         child: Column(
           children: <Widget>[
+            SizedBox(height: 20),
             Container(
-              height: 200,
+              height: 100,
               child: Column(
                 children: <Widget>[
-                  FutureBuilder(
-                    future: Firestore.instance.collection('total').document('total').get(),
-                    builder: (context, document){
-                      if (!document.hasData) return Text("Loading . . .");
-                      return Column(
-                        children: <Widget>[
-                          Text(document.data['price'].toString()),
-                          Text(document.data['quantity'].toString())
-                        ]
-                      );
-                    }
+                  cartInfo,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      RaisedButton(
+                        onPressed: (){
+                          setState(() {
+                            cartInfo = _cartInfo();
+                          });
+                        },
+                        child: Text("Refresh Cart"),
+                      ),
+                      SizedBox(width: 8),
+                      RaisedButton(
+                        onPressed: (){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => CustomerCartPage())
+                          );
+                        },
+                        child: Text("View Cart"),
+                      )
+                    ],
                   ),
-                  RaisedButton(
-                    onPressed: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => CustomerCartPage())
-                      );
-                    },
-                    child: Text("View Cart"),
-                  )
                 ],
               ),
             ),
+            Divider(),
             Expanded(
               child: StreamBuilder(
                 stream: Firestore.instance.collection('stores').snapshots(),

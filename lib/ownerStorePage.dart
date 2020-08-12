@@ -59,15 +59,27 @@ class _ProductCardState extends State<ProductCard>{
       child: Container(
         child: Column(
           children: <Widget>[
-            Text(widget.product['name']),
+            Text(widget.product['name'],style: TextStyle(fontWeight: FontWeight.bold)),
             Text(widget.product['desc']),
             FadeInImage.assetNetwork(
               height: 100,
               placeholder: 'assets/no_img.png',
               image: widget.product['photo']
             ),
-            Text(widget.product['price'].toString()),
-            Text(widget.product['quantity'].toString()),
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Price: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(widget.product['price'].toString()),
+              ]
+            ),
+            Row( //This should be a RichText, but I'm having some issues on my phone with this
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("Stock: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(widget.product['quantity'].toString()),
+              ]
+            ),
             RaisedButton(
               onPressed: () async {
                 String origName = widget.product['name'];
@@ -282,7 +294,13 @@ class _OwnerStorePageState extends State<OwnerStorePage>{
                     placeholder: 'assets/no_img.png',
                     image: widget.store['photo']
                   ),
-                  Text(widget.store['hours']),
+                  Row( //This should be a RichText, but I'm having some issues on my phone with this
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("Open Hours: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(widget.store['hours']),
+                    ]
+                  ),
                   RaisedButton(
                     onPressed: (){
                       addProduct();
